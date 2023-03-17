@@ -95,7 +95,7 @@ volumes:
     driver_opts:
       type: none
       # PUT YOUR USER NAME / PROJECT FOLDER BELOW
-      device: /home/YOUR_USERNAME/relic-query-server/pages/
+      device: /home/YOUR_USERNAME/relic-query-server/server/pages/
       o: bind
 
 networks:
