@@ -9,6 +9,7 @@
 const express = require('express');
 const cors = require('cors');
 const favicon = require('serve-favicon');
+const bodyParser = require('body-parser');
 
 const app = express();
 
@@ -19,10 +20,9 @@ app.use(cors({
   origin: '*'
 }));
 
-// parse requests of content-type - application/json
-app.use(express.json({ limit: '800mb' }));
-// parse requests of content-type - application/x-www-form-urlencoded
-app.use(express.urlencoded({ limit: '800mb'}));
+
+app.use(bodyParser.json({ limit: '500mb'} ));
+app.use(bodyParser.urlencoded({ limit: '500mb', extended: true, parameterLimit: 50000} ));
 
 // set root to serve client app
 app.use('/', express.static('./pages/'));
