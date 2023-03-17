@@ -21,8 +21,12 @@ app.use(cors({
 }));
 
 
-app.use(bodyParser.json({ limit: '500mb'} ));
-app.use(bodyParser.urlencoded({ limit: '500mb', extended: true, parameterLimit: 50000} ));
+app.use(bodyParser.json({ limit: '500mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '500mb', parameterLimit: 50000 }));
+// parse requests of content-type - application/json
+app.use(express.json());
+// parse requests of content-type - application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
 
 // set root to serve client app
 app.use('/', express.static('./pages/'));
