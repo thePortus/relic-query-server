@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+    mysqldb:
+      image: mysql:5.7
+      restart: unless-stopped
+      environment:
+        # PUT YOUR MYSQL DATABASE PASSWORD
+        - MYSQL_ROOT_PASSWORD=123456
+        - MYSQL_DATABASE=relic-query
+      ports:
+        - 3307:3306
+      volumes:
+        - db:/var/lib/mysql
+      networks:
+        - server-network
+    nodejs:
+      depends_on:
+        - mysqldb
+      build: server/
+      restart: unless-stopped
+      ports:
+        - 8080:8080
+      environment:
+          - DB_HOST=mysqldb
+          - DB_USER=root
+          # PUT YOUR MYSQL DATABASE PASSWORD BELOW
+          - DB_PASSWORD=123456
+          - DB_NAME=relic-query
+          - DB_LOCAL_PORT=3307
+          - DB_PORT=3306
+          - WEB_PORT=8080
+          # PUT YOUR JAVASCRIPT WEB TOKEN SECRET BELOW
+          - JWT_SECRET=secret
+          # PUT YOUR DIGITALOCEAN SPACES OR AWS BUCKET INFO BELOW
+          - BUCKET_ENDPOINT=YOUR_BUCKET_ENDPOINT
+          - BUCKET_KEY=YOUR_BUCKET_KEY
+          - BUCKET_SECRET=YOUR_BUCKET_SECRET
+          - BUCKET_NAME=YOUR_BUCKET_NAME
+          # PUT YOUR SITE OWNER ACCOUNT INFO BELOW
+          - OWNER_USERNAME=3dviewerowner
+          - OWNER_PASSWORD=password
+          - OWNER_EMAIL=sample@email.com
+      stdin_open: true
+      tty: true
+      networks:
+        - server-network
+    webserver:
+      image: nginx:mainline-alpine
+      container_name: webserver
+      restart: unless-stopped
+      ports:
+        - 80:80
+        - 443:443
+      volumes:
+        - ./nginx:/etc/nginx/conf.d
+        # if developing locally, comment out web-root, certbot, and dhparam volumes
+        - web-root:/var/www/html
+        - certbot-etc:/etc/letsencrypt
+        - certbot-var:/var/lib/letsencrypt
+        - ./certbot/www:/var/www/certbot/:ro
+        - ./dhparam:/etc/ssl/certs
+      depends_on:
+        - nodejs
+      networks:
+        - server-network
+    # if developing locally, comment out certbot service
+    certbot:
+      image: certbot/certbot
+      container_name: certbot
+      volumes:
+        - certbot-etc:/etc/letsencrypt
+        - certbot-var:/var/lib/letsencrypt
+        - ./certbot/www/:/var/www/certbot/:rw
+        - web-root:/var/www/html
+      depends_on:
+        - webserver
+      # PUT YOUR EMAIL AND DOMAIN NAME BELOW
+      command: certonly --webroot --webroot-path /var/www/html/ --email sample@your_domain --agree-tos --no-eff-email -d your_domain -d www.your_domain
+
+volumes:
+  db:
+  # if developing locally, comment out the certbot-*, and dhparam, and web-root volumes (and subheadings)
+  certbot-etc:
+  certbot-var:
+  dhparam:
+    driver: local
+    driver_opts:
+      type: none
+  # PUT YOUR USERNAME / PROJECT FOLDER BELOW
+      device: /home/YOUR_USERNAME/relic-query-server/dhparam/
+      o: bind
+  web-root:
+    driver: local
+    driver_opts:
+      type: none
+      # PUT YOUR USER NAME / PROJECT FOLDER BELOW
+      device: /home/YOUR_USERNAME/relic-query-server/pages/
+      o: bind
+
+networks:
+    server-network:
+      driver: bridge
