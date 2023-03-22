@@ -20,7 +20,7 @@ module.exports = {
       credits: {
         type: Sequelize.TEXT
       },
-      file: {
+      model: {
         type: Sequelize.TEXT
       },
       createdAt: {

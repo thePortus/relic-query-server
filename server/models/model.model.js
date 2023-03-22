@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     description: DataTypes.TEXT,
     credits: DataTypes.TEXT,
-    file: DataTypes.TEXT
+    model: DataTypes.TEXT
   }, {
     sequelize,
     modelName: 'Model',

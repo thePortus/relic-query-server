@@ -33,8 +33,8 @@ exports.create = (req, res) => {
   if (!req.body.title) {
     errorMsgs.push('Must contain a \'title\' field!');
   }
-  if (!req.body.file) {
-    errorMsgs.push('Must contain a \'file\' field!');
+  if (!req.body.model) {
+    errorMsgs.push('Must contain a \'model\' field!');
   }
   if (errorMsgs.length > 0) {
     res.send({
@@ -51,26 +51,27 @@ exports.create = (req, res) => {
       res.status(401).send({ message: 'Unauthorized' });
     }
   });
-  let filepath = uuidv4() + '.obj';
+  let filepath = uuidv4();
   const requestObj = {
     id: req.body.id || null,
     title: req.body.title,
     uploadedBy: user.username,
     description: req.body.description,
     credits: req.body.credits,
-    file: filepath
+    model: filepath + '.gltf'
   };
+  // put model mesh in storage
   s3.putObject({
     Bucket: process.env.BUCKET_NAME,
-    Key: user.username + '/' + filepath,
-    Body: req.body.file,
+    Key: user.username + '/' + filepath + '.gltf',
+    Body: req.body.model,
     ACL: 'public-read'
   }, (err, data) => {
     if (err) {
-      console.log('ERROR: ');
+      console.log('ERROR UPLOADING MODEL: ');
       console.log(err);
     }
-    console.log('FILE UPLOADED SUCCESSFULLY');
+    console.log('FILES UPLOADED SUCCESSFULLY');
     // save item in the database
     Model.create(requestObj)
       .then(data => {
@@ -179,10 +180,10 @@ exports.findOne = (req, res) => {
         // fetch model data from storage
         s3.getObject({
           Bucket: process.env.BUCKET_NAME,
-          Key: data.uploadedBy + '/' + data.file,
-        }, (err, fileData) => {
+          Key: data.uploadedBy + '/' + data.model,
+        }, (err, modelData) => {
           if (err) {
-            console.log('Error fetching file.');
+            console.log('Error fetching model.');
           }
           // send res with file data attached
           res.send({
@@ -191,8 +192,8 @@ exports.findOne = (req, res) => {
             uploadedBy: data.uploadedBy,
             description: data.description,
             credits: data.credits,
-            file: data.file,
-            data: fileData.Body.toString('utf-8')
+            model: data.model,
+            modelData: modelData.Body.toString('utf-8')
           });
         });
       } else {
@@ -262,10 +263,10 @@ exports.delete = (req, res) => {
       if (modelData) {
         s3.deleteObject({
           Bucket: process.env.BUCKET_NAME,
-          Key: modelData.uploadedBy + '/' + modelData.file,
+          Key: modelData.uploadedBy + '/' + modelData.model,
         }, (err, data) => {
           if (err) {
-            console.log('ERROR: ');
+            console.log('ERROR DELETING MODEL: ');
             console.log(err);
           }
           console.log('FILE DELETED SUCCESSFULLY');
