@@ -249,6 +249,15 @@ exports.update = (req, res) => {
 
 // delete an item with the specified id in the request
 exports.delete = (req, res) => {
+  let user = {};
+  jwt.verify(req.headers.authorization, config.JWT_SECRET, function (err, decoded) {
+    if(decoded) {
+      user = decoded.data;
+    }
+    else {
+      res.status(401).send({ message: 'Unauthorized' });
+    }
+  });
   const id = req.params.id;
   Model.findByPk(id, {
     include: [
@@ -261,6 +270,10 @@ exports.delete = (req, res) => {
   })
     .then(modelData => {
       if (modelData) {
+        if (modelData.uploadedBy !== user.username && user.role !== 'Owner') {
+          res.status(401).send({ message: 'Unauthorized to delete this model' });
+          return;
+        }
         s3.deleteObject({
           Bucket: process.env.BUCKET_NAME,
           Key: modelData.uploadedBy + '/' + modelData.model,
