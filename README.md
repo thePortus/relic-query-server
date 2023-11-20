@@ -6,10 +6,6 @@ By [David J. Thomas](mailto:dave.a.base@gmail.com), [thePort.us](https://thePort
 
 ---
 
-Check out the live project website at [https://relic-query.theport.us/](https://relic-query.theport.us/)
-
----
-
 Full Stack (MySQL ExpressJS Angular NodeJS) app for to share 3D models on the web. Upload is limited
 to only those users pre-approved by the site owner.
 
